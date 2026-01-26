@@ -1,0 +1,244 @@
+@import "tailwindcss";
+
+/* Page layout */
+.page-container {
+  padding: 2rem;
+}
+
+.page-content {
+  max-width: 56rem;
+}
+
+/* Typography */
+.page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.page-description {
+  color: #4b5563;
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #111827;
+}
+
+/* Card/Section */
+.card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Forms */
+.form {
+  display: grid;
+  gap: 1rem;
+}
+
+.form-field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-input,
+.form-select {
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  width: 100%;
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.5);
+}
+
+.form-checkbox {
+  height: 1rem;
+  width: 1rem;
+  color: #2563eb;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+}
+
+.form-checkbox:focus {
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.5);
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-label {
+  margin-left: 0.5rem;
+  display: block;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+/* Grid layouts */
+.grid-2-col {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-3-col {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* Bordered section */
+.bordered-section {
+  display: grid;
+  gap: 1rem;
+  padding-left: 1rem;
+  border-left: 4px solid #e5e7eb;
+}
+
+/* Button base styles */
+button {
+  font-weight: 600;
+  border-radius: 0.375rem;
+  transition: all 200ms;
+  cursor: pointer;
+  border: none;
+  font-size: 1rem;
+}
+
+/* Button variants */
+.btn-primary {
+  background-color: #2563eb;
+  color: white;
+  padding: 0.5rem 1.5rem;
+}
+.btn-primary:hover {
+  background-color: #1d4ed8;
+}
+.btn-primary:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.5);
+}
+
+.btn-secondary {
+  background-color: #d1d5db;
+  color: #374151;
+  padding: 0.5rem 1.5rem;
+}
+.btn-secondary:hover {
+  background-color: #9ca3af;
+}
+
+.btn-danger {
+  background-color: #dc2626;
+  color: white;
+  padding: 0.5rem 1rem;
+}
+.btn-danger:hover {
+  background-color: #b91c1c;
+}
+
+.btn-warning {
+  background-color: #f97316;
+  color: white;
+  padding: 0.5rem 1.5rem;
+}
+.btn-warning:hover {
+  background-color: #ea580c;
+}
+
+.btn-close {
+  font-size: 1.875rem;
+  line-height: 1;
+  color: #4b5563;
+  background: transparent;
+  padding: 0;
+  font-weight: normal;
+}
+.btn-close:hover {
+  color: #1f2937;
+}
+.btn-close.danger {
+  color: #dc2626;
+}
+.btn-close.danger:hover {
+  color: #b91c1c;
+}
+
+.btn-tab {
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+}
+.btn-tab.active {
+  background-color: #1f2937;
+  color: white;
+}
+.btn-tab.inactive {
+  background-color: #d1d5db;
+  color: #4b5563;
+}
+.btn-tab.inactive:hover {
+  background-color: #9ca3af;
+}
+
+.btn-dark {
+  background-color: #1f2937;
+  color: white;
+  padding: 0.75rem 1.5rem;
+}
+.btn-dark:hover {
+  background-color: #111827;
+}
+
+/* Button size modifiers */
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+/* Spacing utilities */
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+/* Form button container */
+.form-actions {
+  padding-top: 0.5rem;
+}
+
+/* Visibility utilities */
+.hidden {
+  display: none !important;
+}
+
+/* Tab button active state based on visible panel */
+.protocol-tabs:has(#mqtt-section:not([hidden])) button[data-controls="mqtt-section"],
+.protocol-tabs:has(#lorawan-section:not([hidden])) button[data-controls="lorawan-section"],
+.otaa-version-tabs:has(#otaa-v103-fields:not([hidden])) button[data-controls="otaa-v103-fields"],
+.otaa-version-tabs:has(#otaa-v104-fields:not([hidden])) button[data-controls="otaa-v104-fields"],
+.otaa-version-tabs:has(#otaa-v11-fields:not([hidden])) button[data-controls="otaa-v11-fields"] {
+  background-color: #2563eb;
+  color: white;
+}

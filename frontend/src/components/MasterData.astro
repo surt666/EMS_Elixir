@@ -1,0 +1,15 @@
+---
+// MasterData component displays dynamic node data loaded via HTMX
+const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL;
+---
+
+<div
+  hx-get={`${API_BASE_URL}/hierarchy/query/node`}
+  hx-request='{"noHeaders": true}'
+  hx-vals="js:{id: sessionStorage.getItem('selectedNodeId'), user: localStorage.getItem('loginId'), path: sessionStorage.getItem('selectedNodePath')}"
+  hx-trigger="node-selected from:window"
+  hx-swap="innerHTML"
+  id="master-data-content">
+  <!-- Dynamic content loaded here from hierarchy node data -->
+  <p class="text-gray-500 p-6">Select a node from the hierarchy to view its data...</p>
+</div>

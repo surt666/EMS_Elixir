@@ -1,0 +1,188 @@
+---
+interface Props {
+        title: string;
+}
+
+const { title } = Astro.props;
+
+import { ViewTransitions } from "astro:transitions";
+import Navbar from "../components/Navbar.astro";
+import Footer from "../components/Footer.astro";
+import Hierarchy from "../components/Hierarchy.astro";
+import Breadcrumb from "../components/Breadcrumb.astro";
+import { Breadcrumbs } from "astro-breadcrumbs";
+
+import "astro-breadcrumbs/breadcrumbs.css";
+import "../styles/global.css";
+
+---
+
+<!doctype html>
+<html lang="en">
+        <head>
+                <meta charset="UTF-8" />
+                <meta name="description" content="Astro description" />
+                <meta name="viewport" content="width=device-width" />
+                <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+                <meta name="generator" content={Astro.generator} />
+                <title>{title}</title>
+                <ViewTransitions />
+                <style>
+                  body {
+                    display: grid;
+                    grid-template-areas:
+                      "nav nav"
+                      "breadcrumb breadcrumb"
+                      "sidebar main"
+                      "footer footer";
+                    grid-template-rows: auto auto 1fr auto;
+                    grid-template-columns: 250px 1fr;
+                    min-height: 100vh;
+                    margin: 0;
+                    padding: 0;
+                  }
+                  
+                  .breadcrumb-area {
+                    grid-area: breadcrumb;
+                  }
+
+                  .nav-area {
+                    grid-area: nav;
+                  }
+
+                  .sidebar-area {
+                    grid-area: sidebar;
+                    background-color: #f3f4f6;
+                  }
+
+                  .main-area {
+                    grid-area: main;
+                    overflow: auto;
+                  }
+
+                  .footer-area {
+                    grid-area: footer;
+                  }
+                </style>
+        </head>
+        <body>
+
+          <svg style="display: none;">
+            <symbol id="chevron-right" viewBox="0 0 320 512">
+              <path fill="currentColor" d="M299.3 244.7c6.2 6.2 6.2 16.4 0 22.6l-192 192c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6L265.4 256 84.7 75.3c-6.2-6.2-6.2-16.4 0-22.6s16.4-6.2 22.6 0l192 192z"></path>
+            </symbol>
+
+            <symbol id="group" viewBox="0 0 900 700">
+              <path fill="currentColor" d="M507 323.8h-194c-101 0-183 82-183 183v14c0 101 82 183 183 183h194c101 0 183-82 183-183v-14c0-101-82-183-183-183zM313 657.8c-75.6 0-137-61.4-137-137v-14c0-75.6 61.4-137 137-137h194c75.6 0 137 61.4 137 137v14c0 75.6-61.4 137-137 137h-194zM713 193.8h-194c-101 0-183 82-183 183v14c0 101 82 183 183 183h194c101 0 183-82 183-183v-14c0-101-82-183-183-183zM519 527.8c-75.6 0-137-61.4-137-137v-14c0-75.6 61.4-137 137-137h194c75.6 0 137 61.4 137 137v14c0 75.6-61.4 137-137 137h-194z"></path>
+            </symbol>
+
+            <symbol id="buildings" viewBox="0 0 466 332">
+              <g class="fa-duotone-group">
+                <path fill="currentColor" d="m 184.39186,0.400195 c -6.69999,0 -13.40001,2.798833 -20,8.298828 -16.59998,13.899981 -33.30041,27.801181 -49.90039,41.701171 -0.8,0.7 -1.7,1.29883 -3,2.29883 L 50.093029,104.09941 c -14.999985,12.29999 -29.900796,24.69962 -44.800781,37.09961 -6.099994,4.99999 -6.400386,8.5 -1.400391,14.5 l 11.09961,13.20117 c 4.099996,4.9 8.100005,5.19961 13,1.09961 C 78.591416,127.79984 129.19269,85.699764 179.69264,43.499804 c 1.5,-1.2 2.99883,-2.40039 4.79883,-3.90039 1.8,1.4 3.20117,2.70039 4.70117,3.90039 8.89999,7.39999 17.79923,14.90079 26.69922,22.30078 2.3,-1.9 4.50078,-3.80117 6.80078,-5.70117 7.19999,-5.99999 14.39962,-12.09962 21.59961,-18.09961 L 204.39186,8.699023 c -6.59999,-5.499995 -13.30001,-8.198828 -20,-8.298828 z m 0,59.599609 c -1.3,1.1 -2.5,1.90078 -3.5,2.80078 -41.69996,34.29997 -83.300042,68.700036 -125.000003,102.999996 -2.199997,1.8 -3,3.59883 -3,6.29883 0.1,34.79996 0.09961,69.70003 0.09961,104.5 0,11.19999 5.901573,17 17.101562,17 h 65.000001 v -6.69922 c 0.1,-22.19998 0.1,-44.80119 0,-67.20117 l -0.30078,0.30078 c -5,4.2 -10.4004,6.30078 -15.90039,6.30078 -4.7,0 -11.69962,-1.60118 -18.09961,-9.20117 -2.600002,-3.1 -5.200782,-6.19922 -7.800782,-9.19922 -1.1,-1.4 -2.29844,-2.69961 -3.39844,-4.09961 -1.9,-2.3 -7.700389,-9.20001 -6.900389,-18.5 0.799999,-8.39999 6.199219,-13.80156 10.199219,-17.10156 4,-3.3 7.900392,-6.59844 11.900392,-9.89844 10.79999,-8.89999 21.9004,-18.20118 32.90039,-27.20117 l 61.40039,-51.298826 0.19922,-0.20117 0.30078,-0.19922 c 0.5,-0.4 0.89883,-0.7 1.29883,-1 0.5,-0.4 0.90117,-0.70039 1.20117,-0.90039 l 1.79883,-1.5 c -6.49999,-5.29999 -12.90001,-10.60001 -19.5,-16 z" class="fa-secondary"></path>
+                <path fill="currentColor" d="m 281.99774,39.199209 c -6.69999,0 -13.40001,2.80079 -20,8.30079 -1.9,1.49999 -3.69961,3.09922 -5.59961,4.69921 -9.49999,7.9 -19.00001,15.90079 -28.5,23.80079 -3.9,3.29999 -7.90079,6.60039 -11.80078,9.90039 -1.3,1.09999 -2.7,2.19883 -4,3.29882 -0.8,0.7 -1.7,1.30079 -3,2.30079 l -61.39844,51.400391 c -14.99998,12.29998 -29.9008,24.69962 -44.80078,37.09961 -6.099987,4.99999 -6.400387,8.5 -1.40039,14.5 l 11.09961,13.19921 c 2.2,2.6 4.40117,3.90039 6.70117,3.90039 2,0 3.99883,-0.89883 6.29883,-2.79882 4.89999,-4 9.70157,-8.10118 14.60156,-12.20118 23.79998,-19.89998 47.60002,-39.69962 71.5,-59.5996 10.99999,-9.2 22.09962,-18.39962 33.09961,-27.59961 3.9,-3.3 7.79922,-6.50079 11.69922,-9.800791 6.99999,-5.79999 13.9004,-11.60039 20.90039,-17.40039 1.5,-1.19999 2.89922,-2.39843 4.69922,-3.89843 1.8,1.4 3.20117,2.69844 4.70117,3.89843 21.19998,17.69999 42.39963,35.300021 63.59961,53.000001 L 368.69891,150.5 c 18.49998,15.49998 37.09963,30.9004 55.59961,46.40039 4.7,3.89999 9.49922,7.89883 14.19922,11.79882 2.3,1.9 4.30078,2.80079 6.30078,2.80079 2.3,0 4.49922,-1.3004 6.69922,-3.9004 l 11.09961,-13.19921 c 4.89999,-5.9 4.59999,-9.3004 -1.5,-14.40039 -14.89999,-12.39999 -29.79884,-24.79963 -44.79883,-37.09961 L 354.89813,91.499999 c -1.3,-1 -2.2,-1.60079 -3,-2.30079 -16.59998,-13.89998 -33.20041,-27.79923 -49.90039,-41.69921 -6.59999,-5.5 -13.30001,-8.20079 -20,-8.30079 z m -0.0996,58.70118 -13.80078,11.500001 -11.59961,9.69921 -10.79883,9 c -8.09999,6.7 -16.10118,13.50118 -24.20117,20.20118 -22.59998,18.69998 -45.30002,37.29845 -68,55.89843 -1,0.8 -1.69922,1.60001 -2.19922,2.5 -0.6,1.1 -0.90039,2.30079 -0.90039,3.80079 0.1,27.69997 0.0996,55.39963 0.0996,83.0996 V 315 c 0,11.19998 5.89962,17 17.09961,17 h 32.90039 48.30078 c 1.2,0 2.3,-0.0992 4,-0.19922 v -38.20118 -49 h 58.40039 v 45.30079 41.79882 c 1.2,0.1 1.89961,0.20118 2.59961,0.20118 h 47.69922 c 12.09999,0 24.3004,3.9e-4 36.40039,-0.0996 9.49999,0 15.59961,-6.30001 15.59961,-16 0,-35.29997 -3.9e-4,-70.60004 0.0996,-106 0,-1.2 -0.19961,-2.30118 -0.59961,-3.20118 -0.5,-0.39999 -1.1,-1.10039 -2,-1.90039 C 393.89775,190.69924 376.8981,176.6996 359.89812,162.59961 353.39813,157.19962 346.7985,151.80039 340.29851,146.4004 L 318.39813,128.0996 282.09735,97.900389 h -0.0996 z" class="fa-primary"></path>
+              </g>
+            </symbol>
+          </svg>
+
+          <div class="nav-area">
+            <Navbar />
+          </div>
+
+          <div class="breadcrumb-area">
+            <Breadcrumb />
+          </div>
+
+          <div class="sidebar-area" transition:persist="side-menu">
+            <Hierarchy />
+          </div>
+
+          <div class="main-area">
+            <slot />
+          </div>
+          
+          <!-- <div class="footer-area"> -->
+            <!-- <Footer /> -->
+          <!-- </div> -->
+        </body>
+</html>
+
+<script>
+	import 'invokers/compatible';
+	import { Amplify } from 'aws-amplify';
+	import { getCurrentUser, signOut } from 'aws-amplify/auth';
+
+	// Configure Amplify
+	Amplify.configure({
+		Auth: {
+			Cognito: {
+				region: 'eu-central-1',
+				userPoolId: import.meta.env.PUBLIC_USER_POOL_ID,
+				userPoolClientId: import.meta.env.PUBLIC_USER_POOL_CLIENT_ID,
+			}
+		}
+	});
+
+	// Function to initialize auth check
+	function initAuth() {
+		getCurrentUser()
+			.then(() => {
+				window.dispatchEvent(new CustomEvent('user-authenticated'));
+			})
+			.catch(() => {
+				window.dispatchEvent(new CustomEvent('user-logged-out'));
+			});
+	}
+
+	// Function to setup logout handler
+	function setupLogout() {
+		document.getElementById('logout-btn')?.addEventListener('click', async () => {
+			try {
+				await signOut();
+			} catch (error) {
+				console.log('Logout error:', error.message);
+			}
+			window.dispatchEvent(new CustomEvent('user-logged-out'));
+			window.location.href = '/';
+		});
+	}
+
+	// Initial setup
+	initAuth();
+	setupLogout();
+
+	// Reinitialize on view transitions
+	document.addEventListener('astro:page-load', () => {
+		initAuth();
+		setupLogout();
+	});
+</script>
+<style is:global>
+        :root {
+                --accent: 136, 58, 234;
+                --accent-light: 224, 204, 250;
+                --accent-dark: 49, 10, 101;
+                --accent-gradient: linear-gradient(
+                        45deg,
+                        rgb(var(--accent)),
+                        rgb(var(--accent-light)) 30%,
+                        white 60%
+                );
+        }
+        html {
+                font-family: system-ui, sans-serif;
+        }
+        code {
+                font-family:
+                        Menlo,
+                        Monaco,
+                        Lucida Console,
+                        Liberation Mono,
+                        DejaVu Sans Mono,
+                        Bitstream Vera Sans Mono,
+                        Courier New,
+                        monospace;
+        }
+        .hidden {
+          display: none;
+        }
+</style>

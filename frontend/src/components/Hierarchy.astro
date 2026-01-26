@@ -1,0 +1,77 @@
+---
+const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL;
+---
+<div id="container">
+    <ul class="nested-list">
+        <li hx-get={`${API_BASE_URL}/hierarchy/query/nodes`}
+            hx-vals="js:{user: localStorage.getItem('loginId')}"
+            hx-request='{"noHeaders": true}'
+            hx-target=".nested-list"
+            hx-trigger="load delay:100ms once"
+            style="cursor: pointer;">
+        <ul class="nested-list"></ul>
+        </li>
+    </ul>
+</div>
+
+<style is:global>
+    .navigation-item__arrow {
+      transition: transform 0.2s ease;
+    }
+
+    .fa-duotone-group .fa-secondary {
+      opacity: var(--fa-secondary-opacity, 1);
+    }
+
+    .fa-duotone-group .fa-primary {
+      opacity: var(--fa-primary-opacity, 1);
+    }
+
+    ul, li {
+      list-style: none !important;
+      list-style-type: none !important;
+      list-style-image: none !important;
+    }
+
+  .nested-list {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Minimal indentation for nested lists */
+  li > .nested-list {
+    padding-left: 4px !important; /* Reduced from 8px to 4px for less aggressive indentation */
+  }
+
+  /* Ensure icons take minimal space */
+  .icon-wrapper, .navigation-item__icon {
+    display: inline-grid;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px; /* Set minimum width to prevent layout shifts */
+  }
+  
+  /* Smooth transition when expanding/collapsing */
+  .nested-list, .nested-list li {
+    transition: all 0.2s ease-out;
+  }
+
+  /* Selected/active node styling */
+  .node-name-link {
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+
+  .node-name-link.selected {
+    background-color: #3b82f6;
+    color: white !important;
+    font-weight: 500;
+  }
+
+  .node-name-link:hover:not(.selected) {
+    background-color: #e5e7eb;
+  }
+</style>
+

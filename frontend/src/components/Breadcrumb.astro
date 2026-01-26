@@ -1,0 +1,75 @@
+---
+// Breadcrumb component to show current navigation path
+const currentPath = Astro.url.pathname;
+
+// Define breadcrumb mappings
+const breadcrumbMap: Record<string, { parent?: string; label: string }> = {
+  '/main': { label: 'Oversigt' },
+  '/rimain': { parent: 'Resource Insights', label: 'Overblik' },
+  '/rianalysis': { parent: 'Resource Insights', label: 'Analyse' },
+  '/rienergymodel': { parent: 'Resource Insights', label: 'Energimodel' },
+  '/callaction': { label: 'Call to action' },
+  '/bbenchmark': { parent: 'Analyse', label: 'Bygningsbenchmark' },
+  '/abenchmark': { parent: 'Analyse', label: 'Asset benchmark' },
+  '/standbyanalysis': { parent: 'Analyse', label: 'Standbyanalyse' },
+  '/alarms': { parent: 'Overvågning', label: 'Alarmer' },
+  '/alarmsetup': { parent: 'Overvågning', label: 'Alarm opsætning' },
+  '/meters': { label: 'Målere' },
+  '/climate': { label: 'Klimaregnskab' },
+  '/control': { label: 'Aktiv styring' },
+  '/customreports': { parent: 'Rapportering', label: 'Brugertilpassede rapporter' },
+  '/buildingreport': { parent: 'Rapportering', label: 'Bygningsrapporten' },
+  '/exportdata': { parent: 'Rapportering', label: 'Eksporter forbrugsdata' },
+  '/masterdata': { parent: 'Opsætning', label: 'Stamdata' },
+  '/userlist': { parent: 'Opsætning', label: 'Brugerliste' },
+  '/areas': { parent: 'Opsætning', label: 'Områder' },
+};
+
+const currentPage = breadcrumbMap[currentPath];
+---
+
+{currentPage && (
+  <nav class="breadcrumb-nav bg-gray-100 border-b border-gray-300">
+    <div class="container mx-auto px-4 py-2">
+      <ol class="breadcrumb-list flex items-center gap-2 text-sm">
+        <li class="breadcrumb-item">
+          <a href="/" class="text-gray-600 hover:text-gray-900">Hjem</a>
+        </li>
+        {currentPage.parent && (
+          <>
+            <li class="breadcrumb-separator text-gray-400">/</li>
+            <li class="breadcrumb-item">
+              <span class="text-gray-600">{currentPage.parent}</span>
+            </li>
+          </>
+        )}
+        <li class="breadcrumb-separator text-gray-400">/</li>
+        <li class="breadcrumb-item">
+          <span class="text-gray-900 font-semibold">{currentPage.label}</span>
+        </li>
+      </ol>
+    </div>
+  </nav>
+)}
+
+<style>
+  .breadcrumb-nav {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+
+  .breadcrumb-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .breadcrumb-item {
+    display: inline-block;
+  }
+
+  .breadcrumb-separator {
+    user-select: none;
+  }
+</style>

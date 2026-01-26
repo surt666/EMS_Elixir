@@ -1,0 +1,89 @@
+---
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content="EMS Login" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+		<style>
+			body {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				min-height: 100vh;
+				margin: 0;
+				background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			}
+			
+			.login-container {
+				background: white;
+				border-radius: 8px;
+				padding: 2rem;
+				box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+				width: 100%;
+				max-width: 400px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="login-container">
+			<slot />
+		</div>
+	</body>
+</html>
+
+<script>
+	import { Amplify } from 'aws-amplify';
+
+	// Configure Amplify for login
+	Amplify.configure({
+		Auth: {
+			Cognito: {
+				region: 'eu-central-1',
+				userPoolId: import.meta.env.PUBLIC_USER_POOL_ID,
+				userPoolClientId: import.meta.env.PUBLIC_USER_POOL_CLIENT_ID,
+			}
+		}
+	});
+</script>
+
+<style is:global>
+	:root {
+		--accent: 136, 58, 234;
+		--accent-light: 224, 204, 250;
+		--accent-dark: 49, 10, 101;
+		--accent-gradient: linear-gradient(
+			45deg,
+			rgb(var(--accent)),
+			rgb(var(--accent-light)) 30%,
+			white 60%
+		);
+	}
+	html {
+		font-family: system-ui, sans-serif;
+	}
+	code {
+		font-family:
+			Menlo,
+			Monaco,
+			Lucida Console,
+			Liberation Mono,
+			DejaVu Sans Mono,
+			Bitstream Vera Sans Mono,
+			Courier New,
+			monospace;
+	}
+	.hidden {
+		display: none;
+	}
+</style>

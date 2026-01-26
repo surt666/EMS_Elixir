@@ -1,0 +1,70 @@
+---
+const { dashboardId } = Astro.props;
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Klimaregnskab">
+	<div class="p-8">
+		<h1 class="text-3xl font-bold mb-6">CO2-regnskab og klimapåvirkning</h1>
+		<div id="dashboard-container"></div>
+		<!-- Client-side script -->
+		<script>
+		  import { createEmbeddingContext } from 'amazon-quicksight-embedding-sdk';
+		  
+		  const embedQuickSight = async () => {
+		    try {
+		      // Fetch embed URL from your backend API
+		      const response = await fetch('https://6i2ri4po3zttm4pcfr675cfu6a0krcrb.lambda-url.eu-central-1.on.aws?dashboardId=a9ae8c4d-eea8-4221-8e8c-949d91cf7d94', {
+		        method: 'GET',
+		        headers: {
+		          'Accept': 'application/json'
+		        },
+		      });
+      
+		      const data = await response.json();
+		      
+		      // Create embedding context first
+		      const embeddingContext = await createEmbeddingContext();
+		      
+		      // Embed the dashboard
+		      const dashboard = await embeddingContext.embedDashboard({
+		        url: data.EmbedUrl,
+		        container: '#dashboard-container',
+		        height: '1200px',
+		        width: '1200px'
+		      }, {
+		        parameters: [
+		        /*  {
+		            Name: 'company',
+		            Values: ['88']
+		          },
+		          {
+		            Name: 'startdate',
+		            Values: ['2025/04/01']
+		          },
+		          {
+		            Name: 'enddate',
+		            Values: ['2025/08/01']
+		          }*/
+		        ]
+		      });
+		      
+		      console.log('Dashboard embedded successfully');
+		    } catch (error) {
+		      console.error('Error embedding dashboard:', error);
+		    }
+		  };
+		  
+		  // Run when page loads
+		  embedQuickSight();
+		</script>
+		
+		<style>
+		  #dashboard-container {
+		    width: 100%;
+		    max-width: 1200px;
+		    height: 1200px;
+		    margin: 0 auto;
+		  }
+		</style>
+	</div>
+</Layout>

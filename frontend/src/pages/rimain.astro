@@ -1,0 +1,150 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AggregationChartWrapper from '../components/AggregationChartWrapper.tsx';
+---
+
+<Layout title="Resource Insights - Overblik">
+	<div class="p-8">
+		<h1 class="text-3xl font-bold mb-6">Resource Insights - Overblik</h1>
+		<p class="text-gray-600 mb-8">Overblik over ressourceindsigter og energiforbrug.</p>
+
+		<div class="bg-white rounded-lg shadow p-6 mb-8">
+			<div class="controls-grid mb-6">
+				<div class="control-group">
+					<label for="fromDate" class="label">Fra dato:</label>
+					<input
+						type="datetime-local"
+						id="fromDate"
+						class="input"
+						value="2025-09-24T00:00"
+					/>
+				</div>
+
+				<div class="control-group">
+					<label for="toDate" class="label">Til dato:</label>
+					<input
+						type="datetime-local"
+						id="toDate"
+						class="input"
+						value="2025-10-03T00:00"
+					/>
+				</div>
+
+				<div class="control-group">
+					<label for="resolution" class="label">Opløsning:</label>
+					<select id="resolution" class="input">
+						<option value="hourly" selected>Time</option>
+						<option value="daily">Dag</option>
+					</select>
+				</div>
+
+				<div class="control-group">
+					<button
+						id="updateChart"
+						class="button"
+					>
+						Opdater Graf
+					</button>
+				</div>
+			</div>
+
+			<div id="selectedNode" class="mb-4 text-sm text-gray-600">
+				<span>Valgt node: </span>
+				<span class="font-mono font-bold" id="nodeIdDisplay">Ingen valgt</span>
+			</div>
+
+			<div id="chartContainer">
+				<AggregationChartWrapper client:only="react" />
+			</div>
+		</div>
+	</div>
+</Layout>
+
+<script>
+	// Convert local datetime to UTC ISO string
+	function toUTC(dateTimeLocal: string): string {
+		const dt = new Date(dateTimeLocal);
+		return dt.toISOString();
+	}
+
+	// Update chart with new parameters
+	function updateChart() {
+		const fromDate = (document.getElementById('fromDate') as HTMLInputElement).value;
+		const toDate = (document.getElementById('toDate') as HTMLInputElement).value;
+		const resolution = (document.getElementById('resolution') as HTMLSelectElement).value;
+		const levelId = sessionStorage.getItem('selectedNodeId') || '';
+
+		// Dispatch custom event to update the chart component
+		const event = new CustomEvent('updateChart', {
+			detail: {
+				startDate: toUTC(fromDate),
+				endDate: toUTC(toDate),
+				resolution: resolution,
+				levelId: levelId,
+			},
+		});
+		window.dispatchEvent(event);
+	}
+
+	// Initialize on page load
+	document.addEventListener('DOMContentLoaded', () => {
+		// Set up event listener for update button
+		const updateButton = document.getElementById('updateChart');
+		if (updateButton) {
+			updateButton.addEventListener('click', updateChart);
+		}
+	});
+</script>
+
+<style>
+	.controls-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 1rem;
+		align-items: end;
+	}
+
+	.control-group {
+		display: grid;
+		gap: 0.5rem;
+	}
+
+	.label {
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: #374151;
+	}
+
+	.input {
+		border: 1px solid #d1d5db;
+		border-radius: 0.375rem;
+		padding: 0.5rem 0.75rem;
+		font-size: 0.875rem;
+	}
+
+	.input:focus {
+		outline: none;
+		border-color: #3b82f6;
+		box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+	}
+
+	.button {
+		background-color: #3b82f6;
+		color: white;
+		border: none;
+		border-radius: 0.375rem;
+		padding: 0.5rem 1rem;
+		font-size: 0.875rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: background-color 0.2s;
+	}
+
+	.button:hover {
+		background-color: #2563eb;
+	}
+
+	.button:active {
+		background-color: #1d4ed8;
+	}
+</style>
