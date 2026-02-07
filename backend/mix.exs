@@ -53,7 +53,8 @@ defmodule EmsBackend.MixProject do
       {:bandit, "~> 1.5"},
       {:redix, "~> 1.5"},
       {:cors_plug, "~> 3.0"},
-      {:postgrex, "~> 0.19"}
+      {:postgrex, "~> 0.19"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
     ]
   end
 

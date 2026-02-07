@@ -11,6 +11,15 @@ defmodule EmsBackend do
   alias EmsBackend.Domain.HierarchyNode
   alias EmsBackend.Repositories.HierarchyValkeyImpl
 
+  @allowed_parents %{
+    partner: [:root],
+    company: [:partner],
+    property: [:company],
+    group: [:company, :property],
+    building: [:company, :property, :group],
+    area: [:building]
+  }
+
   @doc """
   Creates a new hierarchy node and stores it.
 
@@ -56,22 +65,35 @@ defmodule EmsBackend do
 
   defp ensure_root_exists do
     case HierarchyValkeyImpl.get("Root", 1) do
-      {:ok, _root} -> :ok
+      {:ok, _root} ->
+        :ok
+
       {:error, :not_found} ->
         {:ok, root} = HierarchyNode.new(%{id: 1, type: :root, name: "Root", metadata: %{}})
         HierarchyValkeyImpl.create(root)
-      _ -> :ok
+
+      _ ->
+        :ok
     end
   end
 
   defp validate_and_determine_parent(:root, _), do: {:ok, nil}
   defp validate_and_determine_parent(:partner, nil), do: {:ok, "Root#1"}
-  defp validate_and_determine_parent(:partner, parent_ref), do: {:ok, parent_ref}
-  defp validate_and_determine_parent(type, nil) when type in [:company, :property, :building, :area, :group],
-    do: {:error, "Parent is required for #{type} nodes"}
-  defp validate_and_determine_parent(_, parent_ref), do: {:ok, parent_ref}
+
+  defp validate_and_determine_parent(child_type, nil),
+    do: {:error, "Parent is required for #{child_type} nodes"}
+
+  defp validate_and_determine_parent(child_type, parent_ref) do
+    [parent_type_str | _] = String.split(parent_ref, "#")
+    parent_type = parent_type_str |> String.downcase() |> String.to_existing_atom()
+
+    if parent_type in Map.get(@allowed_parents, child_type, []),
+      do: {:ok, parent_ref},
+      else: {:error, "#{child_type} cannot be a child of #{parent_type}"}
+  end
 
   defp maybe_link_to_parent(_node, nil), do: :ok
+
   defp maybe_link_to_parent(node, parent_ref) do
     # Parse parent_ref to get type and id
     [parent_type_str, parent_id_str] = String.split(parent_ref, "#")
@@ -80,7 +102,9 @@ defmodule EmsBackend do
     case HierarchyValkeyImpl.get(parent_type_str, parent_id) do
       {:ok, parent_node} ->
         HierarchyValkeyImpl.link_child(parent_node, node)
-      error -> error
+
+      error ->
+        error
     end
   end
 
@@ -116,13 +140,30 @@ defmodule EmsBackend do
   @doc """
   Gets all children of a hierarchy node.
 
+  ## Options
+  - `:exclude_blocked` - When true, filters out blocked nodes (default: false)
+
   ## Examples
 
       iex> get_hierarchy_children("Company", 1001)
       {:ok, [%{id: 2001, type: "Property", name: "Building A", ref: "Property#2001"}]}
+
+      iex> get_hierarchy_children("Company", 1001, exclude_blocked: true)
+      {:ok, [%{id: 2001, type: "Property", name: "Building A", ref: "Property#2001"}]}
   """
-  def get_hierarchy_children(type, id) do
-    HierarchyValkeyImpl.get_children(type, id)
+  def get_hierarchy_children(type, id, opts \\ []) do
+    with {:ok, children} <- HierarchyValkeyImpl.get_children(type, id) do
+      {:ok, maybe_filter_blocked(children, opts[:exclude_blocked])}
+    end
+  end
+
+  defp maybe_filter_blocked(children, false), do: children
+  defp maybe_filter_blocked(children, nil), do: children
+
+  defp maybe_filter_blocked(children, true) do
+    Enum.reject(children, fn child ->
+      match?({:ok, %{blocked: true}}, HierarchyValkeyImpl.get(child.type, child.id))
+    end)
   end
 
   @doc """
@@ -203,5 +244,158 @@ defmodule EmsBackend do
   """
   def unlink_hierarchy_nodes(parent_type, parent_id, child_type, child_id) do
     HierarchyValkeyImpl.unlink_child(parent_type, parent_id, child_type, child_id)
+  end
+
+  # Permission management functions
+
+  @doc """
+  Grants a permission to a user on a specific hierarchy node.
+
+  ## Parameters
+  - `user_id` - User identifier (e.g., email or user ID)
+  - `node_ref` - Node reference string (e.g., "C#101" for Company#101)
+  - `permission` - One of `:read`, `:write`, `:admin`, or `:blocked`
+
+  ## Examples
+
+      iex> grant_permission("user@example.com", "C#101", :read)
+      :ok
+
+      iex> grant_permission("admin@example.com", "P#1", :admin)
+      :ok
+  """
+  def grant_permission(user_id, node_ref, permission)
+      when permission in [:read, :write, :admin, :blocked] do
+    HierarchyValkeyImpl.grant_permission(user_id, node_ref, permission)
+  end
+
+  @doc """
+  Revokes a user's permission on a specific hierarchy node.
+
+  ## Examples
+
+      iex> revoke_permission("user@example.com", "C#101")
+      :ok
+  """
+  def revoke_permission(user_id, node_ref) do
+    HierarchyValkeyImpl.revoke_permission(user_id, node_ref)
+  end
+
+  @doc """
+  Gets a user's permission on a specific node.
+
+  Returns `{:ok, permission}` or `{:ok, nil}` if no permission exists.
+
+  ## Examples
+
+      iex> get_permission("user@example.com", "C#101")
+      {:ok, :read}
+
+      iex> get_permission("user@example.com", "C#999")
+      {:ok, nil}
+  """
+  def get_permission(user_id, node_ref) do
+    HierarchyValkeyImpl.get_permission(user_id, node_ref)
+  end
+
+  @doc """
+  Gets all permissions for a user across all nodes.
+
+  Returns a list of `%{node_ref: ref, permission: perm}` maps.
+
+  ## Examples
+
+      iex> get_user_permissions("user@example.com")
+      {:ok, [
+        %{node_ref: "C#101", permission: :read},
+        %{node_ref: "P#1", permission: :write}
+      ]}
+  """
+  def get_user_permissions(user_id) do
+    HierarchyValkeyImpl.get_user_permissions(user_id)
+  end
+
+  @doc """
+  Gets the starting hierarchy nodes for a user based on their permissions.
+
+  Returns nodes where the user has direct permissions (entry points into hierarchy).
+  Excludes nodes where user has `:blocked` permission.
+
+  ## Examples
+
+      iex> get_start_nodes_for_user("user@example.com")
+      {:ok, [
+        %{node: %HierarchyNode{...}, permission: :read}
+      ]}
+  """
+  def get_start_nodes_for_user(user_id) do
+    HierarchyValkeyImpl.get_start_nodes_for_user(user_id)
+  end
+
+  @doc """
+  Checks if a user can access a specific node.
+
+  A user can access a node if:
+  1. They have a non-blocked permission directly on the node, OR
+  2. They have a non-blocked permission on any ancestor of the node
+
+  ## Examples
+
+      iex> can_access_node?("user@example.com", "B#3001")
+      true
+  """
+  def can_access_node?(user_id, node_ref) do
+    case get_permission(user_id, node_ref) do
+      {:ok, perm} when perm in [:read, :write, :admin] -> true
+      {:ok, :blocked} -> false
+      {:ok, nil} -> has_ancestor_permission?(user_id, node_ref)
+      _ -> false
+    end
+  end
+
+  defp has_ancestor_permission?(user_id, node_ref) do
+    [type_str, id_str] = String.split(node_ref, "#", parts: 2)
+    id = String.to_integer(id_str)
+
+    case HierarchyValkeyImpl.get_ancestors(type_str, id) do
+      {:ok, ancestors} -> Enum.any?(ancestors, &has_access_permission?(user_id, &1.ref))
+      _ -> false
+    end
+  end
+
+  defp has_access_permission?(user_id, node_ref) do
+    match?({:ok, perm} when perm in [:read, :write, :admin], get_permission(user_id, node_ref))
+  end
+
+  @doc """
+  Blocks a hierarchy node, preventing access.
+
+  ## Examples
+
+      iex> block_node("Company", 101)
+      {:ok, %HierarchyNode{blocked: true, ...}}
+  """
+  def block_node(type, id) do
+    with {:ok, node} <- HierarchyValkeyImpl.get(type, id),
+         {:ok, blocked_node} <- HierarchyNode.block(node),
+         :ok <- HierarchyValkeyImpl.create(blocked_node) do
+      {:ok, blocked_node}
+    end
+  end
+
+  @doc """
+  Unblocks a hierarchy node, restoring access.
+
+  ## Examples
+
+      iex> unblock_node("Company", 101)
+      {:ok, %HierarchyNode{blocked: false, ...}}
+  """
+  def unblock_node(type, id) do
+    with {:ok, node} <- HierarchyValkeyImpl.get(type, id),
+         {:ok, unblocked_node} <- HierarchyNode.unblock(node),
+         :ok <- HierarchyValkeyImpl.create(unblocked_node) do
+      {:ok, unblocked_node}
+    end
   end
 end

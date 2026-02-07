@@ -14,9 +14,41 @@ defmodule EmsBackendWeb.Router do
     plug :accepts, ["json"]
   end
 
+  # HTMX pipeline - no CSRF protection for HTMX requests
+  pipeline :htmx do
+    plug :accepts, ["html", "json"]
+    plug :fetch_session
+  end
+
   # Browser scope for HTMX endpoints (will be added as needed)
   scope "/", EmsBackendWeb do
     pipe_through :browser
+  end
+
+  # Hierarchy endpoints for HTMX
+  scope "/hierarchy", EmsBackendWeb do
+    pipe_through :htmx
+
+    # Query endpoints (GET)
+    get "/query/nodes", HierarchyController, :query_nodes
+    get "/query/node", HierarchyController, :query_node
+    get "/query/sensors", HierarchyController, :query_sensors
+    get "/query/timezones", HierarchyController, :query_timezones
+    get "/query/profiles", HierarchyController, :query_profiles
+    get "/query/languages", HierarchyController, :query_languages
+    get "/query/currencies", HierarchyController, :query_currencies
+    get "/query/permissions", HierarchyController, :query_permissions
+    get "/query/nodetypes", HierarchyController, :query_nodetypes
+    get "/query/users", HierarchyController, :query_users
+
+    # Command endpoint (POST)
+    post "/command", HierarchyController, :command
+
+    # CORS preflight
+    options "/query/nodes", HierarchyController, :options
+    options "/query/node", HierarchyController, :options
+    options "/query/sensors", HierarchyController, :options
+    options "/command", HierarchyController, :options
   end
 
   # API routes with dependency injection pattern

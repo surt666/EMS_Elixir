@@ -484,4 +484,98 @@ defmodule EmsBackend.Repositories.HierarchyValkeyImpl do
 
     :ok
   end
+
+  # Permission storage functions
+  # Key patterns:
+  # - user_perm:{user_id}:{node_ref} → permission atom as string
+  # - user_perms:{user_id} → SET of node_refs user has permissions on
+
+  @doc """
+  Grants a permission to a user on a specific node.
+  """
+  def grant_permission(user_id, node_ref, permission) when permission in [:read, :write, :admin, :blocked] do
+    perm_key = "user_perm:#{user_id}:#{node_ref}"
+    index_key = "user_perms:#{user_id}"
+
+    with {:ok, "OK"} <- Redix.command(:redix, ["SET", perm_key, Atom.to_string(permission)]),
+         {:ok, _} <- Redix.command(:redix, ["SADD", index_key, node_ref]) do
+      :ok
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
+  Revokes a user's permission on a specific node.
+  """
+  def revoke_permission(user_id, node_ref) do
+    perm_key = "user_perm:#{user_id}:#{node_ref}"
+    index_key = "user_perms:#{user_id}"
+
+    with {:ok, _} <- Redix.command(:redix, ["DEL", perm_key]),
+         {:ok, _} <- Redix.command(:redix, ["SREM", index_key, node_ref]) do
+      :ok
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
+  Gets a user's permission on a specific node.
+  Returns {:ok, permission} or {:ok, nil} if no permission.
+  """
+  def get_permission(user_id, node_ref) do
+    perm_key = "user_perm:#{user_id}:#{node_ref}"
+
+    case Redix.command(:redix, ["GET", perm_key]) do
+      {:ok, nil} -> {:ok, nil}
+      {:ok, perm_str} -> {:ok, String.to_existing_atom(perm_str)}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
+  Gets all permissions for a user.
+  Returns a list of %{node_ref: ref, permission: perm}.
+  """
+  def get_user_permissions(user_id) do
+    index_key = "user_perms:#{user_id}"
+
+    case Redix.command(:redix, ["SMEMBERS", index_key]) do
+      {:ok, node_refs} ->
+        permissions = Enum.map(node_refs, fn node_ref ->
+          {:ok, perm} = get_permission(user_id, node_ref)
+          %{node_ref: node_ref, permission: perm}
+        end)
+        {:ok, permissions}
+
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @doc """
+  Gets the starting hierarchy nodes for a user based on their permissions.
+  Returns nodes where user has direct permissions (entry points into hierarchy).
+  """
+  def get_start_nodes_for_user(user_id) do
+    case get_user_permissions(user_id) do
+      {:ok, permissions} ->
+        nodes = permissions
+        |> Enum.filter(fn %{permission: perm} -> perm != :blocked end)
+        |> Enum.map(fn %{node_ref: ref, permission: perm} ->
+          [type_str, id_str] = String.split(ref, "#", parts: 2)
+          id = String.to_integer(id_str)
+
+          case get(type_str, id) do
+            {:ok, node} -> %{node: node, permission: perm}
+            _ -> nil
+          end
+        end)
+        |> Enum.reject(&is_nil/1)
+
+        {:ok, nodes}
+
+      {:error, reason} -> {:error, reason}
+    end
+  end
 end

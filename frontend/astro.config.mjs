@@ -30,17 +30,17 @@ export default defineConfig({
       },
       proxy: {
         '/hierarchy': {
-          target: 'https://d368wcanc53tdl.cloudfront.net',
+          target: 'https://localhost:4000',
           changeOrigin: true,
           secure: true,
         },
         '/api': {
-          target: 'https://d368wcanc53tdl.cloudfront.net',
+          target: 'https://localhost:4000',
           changeOrigin: true,
           secure: true,
         },
         '/aggregations': {
-          target: 'https://d368wcanc53tdl.cloudfront.net',
+          target: 'https://localhost:4000',
           changeOrigin: true,
           secure: true,
         },
