@@ -14,10 +14,7 @@ config :ems_backend, EmsBackendWeb.Endpoint,
   code_reloader: true,
   debug_errors: true,
   secret_key_base: "csVxiv107+guX8P1Q0sQwPulBPu5oE7J5ZCdUAOYVYNcfZE+ZqqP4CO1kk4fu2db",
-  watchers: [
-    esbuild: {Esbuild, :install_and_run, [:ems_backend, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:ems_backend, ~w(--watch)]}
-  ]
+  watchers: []
 
 # ## SSL Support
 #

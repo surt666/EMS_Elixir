@@ -41,3 +41,9 @@ Thumbs.db
 # Test coverage
 cover/
 coverage/
+
+# Nix
+.nix-hex/
+.nix-mix/
+result
+erl_crash.dump

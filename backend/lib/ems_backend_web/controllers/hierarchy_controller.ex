@@ -14,7 +14,7 @@ defmodule EmsBackendWeb.HierarchyController do
 
   alias EmsBackend
   alias EmsBackend.Domain.{Values, User}
-  alias EmsBackendWeb.Helpers.HierarchyHtml
+  alias EmsBackendWeb.HierarchyHTML
 
   # CORS headers for all responses
   @cors_headers [
@@ -42,19 +42,24 @@ defmodule EmsBackendWeb.HierarchyController do
     parent_path = Map.get(params, "path")
     with_permissions = Map.get(params, "permissions") == "true"
 
-    html =
+    nodes =
       if node_id && node_id != "" do
-        # Get children of the specified node
-        get_child_nodes_html(node_id, user, parent_path, with_permissions)
+        get_child_nodes(node_id)
       else
-        # Get user's starting nodes
-        get_start_nodes_html(user, with_permissions)
+        get_start_nodes(user)
       end
 
     conn
     |> with_cors()
     |> put_resp_content_type("text/html")
-    |> send_resp(200, html)
+    |> put_view(HierarchyHTML)
+    |> render(:nodes,
+      nodes: nodes,
+      user: user,
+      parent_path: parent_path,
+      with_permissions: with_permissions,
+      api_base_url: ""
+    )
   end
 
   @doc """
@@ -72,12 +77,12 @@ defmodule EmsBackendWeb.HierarchyController do
           {:ok, node} ->
             # Build the parent path for sensors query
             parent_path = build_parent_path(path, node_id, node)
-            html = HierarchyHtml.generate_node_detail_html(node, parent_path)
 
             conn
             |> with_cors()
             |> put_resp_content_type("text/html")
-            |> send_resp(200, html)
+            |> put_view(HierarchyHTML)
+            |> render(:node, node: node, parent: parent_path)
 
           {:error, :not_found} ->
             conn
@@ -109,12 +114,11 @@ defmodule EmsBackendWeb.HierarchyController do
 
     # TODO: Implement sensor query when sensor repository is available
     # For now, return empty list
-    html = HierarchyHtml.generate_sensors_html([])
-
     conn
     |> with_cors()
     |> put_resp_content_type("text/html")
-    |> send_resp(200, html)
+    |> put_view(HierarchyHTML)
+    |> render(:sensors, sensors: [])
   end
 
   @doc """
@@ -202,12 +206,11 @@ defmodule EmsBackendWeb.HierarchyController do
   def query_users(conn, _params) do
     # TODO: Implement user listing when user repository is available
     # For now, return empty list
-    html = HierarchyHtml.generate_users_table_html([])
-
     conn
     |> with_cors()
     |> put_resp_content_type("text/html")
-    |> send_resp(200, html)
+    |> put_view(HierarchyHTML)
+    |> render(:users, users: [])
   end
 
   @doc """
@@ -254,23 +257,20 @@ defmodule EmsBackendWeb.HierarchyController do
 
   # Private helpers
 
-  defp get_child_nodes_html(node_id, user, parent_path, with_permissions) do
+  defp get_child_nodes(node_id) do
     case parse_node_ref(node_id) do
       {:ok, type, id} ->
         case EmsBackend.get_hierarchy_children(type, id, exclude_blocked: true) do
-          {:ok, children} ->
-            HierarchyHtml.generate_nodes_html(children, user, parent_path, with_permissions)
-
-          {:error, _reason} ->
-            ""
+          {:ok, children} -> children
+          {:error, _reason} -> []
         end
 
       {:error, _reason} ->
-        ""
+        []
     end
   end
 
-  defp get_start_nodes_html(user, with_permissions) do
+  defp get_start_nodes(user) do
     case EmsBackend.get_start_nodes_for_user(user) do
       {:ok, user_nodes} ->
         # Check if user has root permission
@@ -279,24 +279,18 @@ defmodule EmsBackendWeb.HierarchyController do
         if has_root do
           # User has root access - show all partners under root
           case EmsBackend.get_hierarchy_children("Root", 1, exclude_blocked: true) do
-            {:ok, partners} ->
-              HierarchyHtml.generate_nodes_html(partners, user, "R#1", with_permissions)
-
-            {:error, _} ->
-              ""
+            {:ok, partners} -> partners
+            {:error, _} -> []
           end
         else
           # Limited user - show their accessible nodes
-          nodes =
-            user_nodes
-            |> Enum.filter(fn %{permission: perm} -> perm != :blocked end)
-            |> Enum.map(fn %{node: node} -> node end)
-
-          HierarchyHtml.generate_nodes_html(nodes, user, nil, with_permissions)
+          user_nodes
+          |> Enum.filter(fn %{permission: perm} -> perm != :blocked end)
+          |> Enum.map(fn %{node: node} -> node end)
         end
 
       {:error, _reason} ->
-        ""
+        []
     end
   end
 
@@ -304,7 +298,11 @@ defmodule EmsBackendWeb.HierarchyController do
     case String.split(ref, "#", parts: 2) do
       [type_str, id_str] ->
         case Integer.parse(id_str) do
-          {id, ""} -> {:ok, type_str, id}
+          {id, ""} ->
+            case short_code_to_type(type_str) do
+              {:ok, type} -> {:ok, type, id}
+              {:error, _} = error -> error
+            end
           _ -> {:error, "Invalid ID format"}
         end
 
@@ -314,6 +312,16 @@ defmodule EmsBackendWeb.HierarchyController do
   end
 
   defp parse_node_ref(_), do: {:error, "Node reference must be a string"}
+
+  # Convert short code to atom type
+  defp short_code_to_type("R"), do: {:ok, :root}
+  defp short_code_to_type("P"), do: {:ok, :partner}
+  defp short_code_to_type("C"), do: {:ok, :company}
+  defp short_code_to_type("PR"), do: {:ok, :property}
+  defp short_code_to_type("B"), do: {:ok, :building}
+  defp short_code_to_type("A"), do: {:ok, :area}
+  defp short_code_to_type("G"), do: {:ok, :group}
+  defp short_code_to_type(code), do: {:error, "Unknown type code: #{code}"}
 
   defp build_parent_path(path, node_id, node) do
     case path do

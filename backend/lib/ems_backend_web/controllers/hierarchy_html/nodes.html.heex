@@ -1,0 +1,11 @@
+<%= for node <- @nodes do %>
+  <.node_item
+    node_ref={get_node_ref(node)}
+    node_type={node.type}
+    node_name={node.name}
+    user={@user}
+    parent_path={@parent_path}
+    with_permissions={@with_permissions}
+    api_base_url={@api_base_url}
+  />
+<% end %>

@@ -3,10 +3,10 @@
 
 export const apiConfig = {
 	// CloudFront distribution URL
-	cloudfrontUrl: import.meta.env.PUBLIC_CLOUDFRONT_URL || 'https://d368wcanc53tdl.cloudfront.net',
+	cloudfrontUrl: import.meta.env.PUBLIC_CLOUDFRONT_URL ?? '',
 
-	// Base URL for API calls (same as CloudFront for now)
-	baseUrl: import.meta.env.PUBLIC_API_BASE_URL || 'https://d368wcanc53tdl.cloudfront.net',
+	// Base URL for API calls (proxied to localhost:4000 in dev)
+	baseUrl: import.meta.env.PUBLIC_API_BASE_URL ?? '',
 
 	// API endpoints
 	endpoints: {

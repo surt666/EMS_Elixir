@@ -1,0 +1,21 @@
+<%= if @users == [] do %>
+  <tr><td colspan="6" class="text-center text-gray-500 py-4">No users found</td></tr>
+<% else %>
+  <%= for user <- @users do %>
+    <tr class="hover:bg-gray-50">
+      <td class="px-4 py-3 border-b"><%= user.name %></td>
+      <td class="px-4 py-3 border-b"><%= user.email %></td>
+      <td class="px-4 py-3 border-b"><%= user.profile %></td>
+      <td class="px-4 py-3 border-b"><%= user.language %></td>
+      <td class="px-4 py-3 border-b"><%= user.currency %></td>
+      <td class="px-4 py-3 border-b">
+        <button
+          class="text-red-600 hover:text-red-800 font-bold"
+          onclick={"window.dispatchEvent(new CustomEvent('delete-user', { detail: { email: '#{user.email}' } }))"}
+        >
+          Slet
+        </button>
+      </td>
+    </tr>
+  <% end %>
+<% end %>

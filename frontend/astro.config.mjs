@@ -30,19 +30,19 @@ export default defineConfig({
       },
       proxy: {
         '/hierarchy': {
-          target: 'https://localhost:4000',
+          target: 'http://localhost:4000',
           changeOrigin: true,
-          secure: true,
+          secure: false,
         },
         '/api': {
-          target: 'https://localhost:4000',
+          target: 'http://localhost:4000',
           changeOrigin: true,
-          secure: true,
+          secure: false,
         },
         '/aggregations': {
-          target: 'https://localhost:4000',
+          target: 'http://localhost:4000',
           changeOrigin: true,
-          secure: true,
+          secure: false,
         },
       }
     },

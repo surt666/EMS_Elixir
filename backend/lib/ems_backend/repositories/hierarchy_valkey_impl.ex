@@ -564,9 +564,10 @@ defmodule EmsBackend.Repositories.HierarchyValkeyImpl do
         |> Enum.filter(fn %{permission: perm} -> perm != :blocked end)
         |> Enum.map(fn %{node_ref: ref, permission: perm} ->
           [type_str, id_str] = String.split(ref, "#", parts: 2)
+          type = string_to_type(type_str)
           id = String.to_integer(id_str)
 
-          case get(type_str, id) do
+          case get(type, id) do
             {:ok, node} -> %{node: node, permission: perm}
             _ -> nil
           end
