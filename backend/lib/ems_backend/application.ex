@@ -12,7 +12,7 @@ defmodule EmsBackend.Application do
       {DNSCluster, query: Application.get_env(:ems_backend, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: EmsBackend.PubSub},
       # Redis/Valkey connection
-      {Redix, name: :redix, host: redis_host(), port: redis_port()},
+      {Redix, name: :redix, host: redis_host(), port: redis_port(), database: redis_database()},
       # QuestDB connection (PostgreSQL wire protocol)
       # {Postgrex, name: :questdb, hostname: questdb_pg_host(), port: questdb_pg_port(), database: "qdb", username: "admin", password: "quest"},
       # Start a worker by calling: EmsBackend.Worker.start_link(arg)
@@ -44,6 +44,10 @@ defmodule EmsBackend.Application do
       nil -> Application.get_env(:ems_backend, :redis_port) || 6379
       port -> String.to_integer(port)
     end
+  end
+
+  defp redis_database do
+    Application.get_env(:ems_backend, :redis_database, 1)
   end
 
   # defp questdb_pg_host do

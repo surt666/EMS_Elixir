@@ -204,13 +204,16 @@ defmodule EmsBackendWeb.HierarchyController do
   Returns list of users as HTML table rows.
   """
   def query_users(conn, _params) do
-    # TODO: Implement user listing when user repository is available
-    # For now, return empty list
+    users = case EmsBackend.list_users() do
+      {:ok, users} -> users
+      {:error, _} -> []
+    end
+
     conn
     |> with_cors()
     |> put_resp_content_type("text/html")
     |> put_view(HierarchyHTML)
-    |> render(:users, users: [])
+    |> render(:users, users: users)
   end
 
   @doc """
@@ -414,30 +417,36 @@ defmodule EmsBackendWeb.HierarchyController do
     allowed = Map.get(data, "allowed", [])
     blocked = Map.get(data, "blocked", [])
 
-    # Build permissions list
+    # Parse profile
     {:ok, profile_atom} = Values.parse_profile(profile)
+    {:ok, language_atom} = Values.parse_language(language)
+    {:ok, currency_atom} = Values.parse_currency(currency)
 
-    permission_for_allowed =
-      case profile_atom do
-        :admin -> :admin
-        :writer -> :write
-        :reader -> :read
-      end
-
-    permissions =
-      Enum.map(allowed, fn node_id -> %{node_ref: node_id, permission: permission_for_allowed} end) ++
-        Enum.map(blocked, fn node_id -> %{node_ref: node_id, permission: :blocked} end)
-
-    case User.new(%{
+    # Create the user
+    case EmsBackend.create_user(%{
            email: email,
            name: name,
-           profile: profile,
-           language: language,
-           currency: currency,
-           permissions: permissions
+           profile: profile_atom,
+           language: language_atom,
+           currency: currency_atom
          }) do
       {:ok, user} ->
-        # TODO: Store user when user repository is available
+        # Grant permissions
+        permission_for_allowed =
+          case profile_atom do
+            :admin -> :admin
+            :writer -> :write
+            :reader -> :read
+          end
+
+        Enum.each(allowed, fn node_id ->
+          EmsBackend.grant_permission(email, node_id, permission_for_allowed)
+        end)
+
+        Enum.each(blocked, fn node_id ->
+          EmsBackend.grant_permission(email, node_id, :blocked)
+        end)
+
         {:ok, "User created successfully: #{user.name}"}
 
       {:error, reason} ->

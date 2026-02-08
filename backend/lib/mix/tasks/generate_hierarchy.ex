@@ -118,10 +118,31 @@ defmodule Mix.Tasks.GenerateHierarchy do
   end
 
   defp create_test_users(_timestamp) do
-    # Users will be stored separately in a user repository when implemented
-    # For now, we just create the permission entries
-    IO.puts("  - stel@energidata.dk (admin with root access)")
-    IO.puts("  - stel@enity.io (limited access)")
+    alias EmsBackend.Services.UserService
+
+    # Create admin user
+    case UserService.create(%{
+      email: "stel@energidata.dk",
+      name: "Stel Admin",
+      profile: :admin,
+      language: :danish,
+      currency: :dkk
+    }) do
+      {:ok, _} -> IO.puts("  - stel@energidata.dk (admin with root access)")
+      {:error, _} -> IO.puts("  - stel@energidata.dk already exists or error")
+    end
+
+    # Create limited user
+    case UserService.create(%{
+      email: "stel@enity.io",
+      name: "Stel Limited",
+      profile: :reader,
+      language: :english,
+      currency: :dkk
+    }) do
+      {:ok, _} -> IO.puts("  - stel@enity.io (limited access)")
+      {:error, _} -> IO.puts("  - stel@enity.io already exists or error")
+    end
   end
 
   defp generate_partners(root_node, timestamp, buildings_per_property) do
